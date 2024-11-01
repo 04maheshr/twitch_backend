@@ -38,6 +38,13 @@ const generateManagementToken = async () => {
   console.log("Generated Token:", token);
   return token;
 }
+app.get("/", async (req, res) => {
+  try {
+    return res.status(200).json({ message: "twitch_Backend" });
+  } catch (error) {
+    return res.status(500).json({ message: "twitch_Backend failed" });
+  }
+});
 
 // Endpoint to create a room and return room code
 app.post("/api/create-room", async (req, res) => {
