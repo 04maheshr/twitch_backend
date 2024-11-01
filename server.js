@@ -15,6 +15,14 @@ dotenv.config();
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
+app.get("/", async (req, res) => {
+  try {
+    return res.status(200).json({ message: "twitch_Backend" });
+  } catch (error) {
+    return res.status(500).json({ message: "twitch_Backend failed" });
+  }
+});
+
 
 
 
