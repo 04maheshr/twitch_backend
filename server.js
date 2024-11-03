@@ -114,6 +114,48 @@ app.post("/api/create-room", async (req, res) => {
     res.status(500).json({ error: "Error creating room: " + error.message });
   }
 });
+app.post('/start-stream', async (req, res) => {
+  console.log("Received request for starting stream:", req.body);
+  const { streamKey, roomId } = req.body; // Keep both streamKey and roomId
+  console.log("Received stream start request with streamKey:", streamKey, "roomId:", roomId);
+
+  if (!streamKey || !roomId) {
+    console.error("Stream key or room ID is missing.");
+    return res.status(400).json({ error: "Stream key and room ID are required." });
+  }
+
+  try {
+    const token = await generateManagementToken(); // Generate the management token
+    console.log("Initiating streaming request to 100ms API.");
+    
+    const startStreamResponse = await fetch(`https://api.100ms.live/v2/external-streams/room/${roomId}/start`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        rtmp_urls: [`rtmp://live.twitch.tv/app/${streamKey}`],
+        recording: false,
+        resolution: { width: 1280, height: 720 }, 
+      }),
+    });
+
+    // Check if the response is OK
+    if (!startStreamResponse.ok) {
+      const errorResponse = await startStreamResponse.json(); // This should be fine now
+      console.error('Failed to start streaming:', errorResponse);
+      return res.status(startStreamResponse.status).json({ error: errorResponse });
+    }
+
+    const data = await startStreamResponse.json(); // Correctly awaiting the response
+    console.log('Streaming started successfully:', data);
+    return res.status(200).json(data); // Return success response to client
+  } catch (error) {
+    console.error("Error starting stream:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+});
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
